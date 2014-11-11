@@ -15,46 +15,6 @@ vector<ofVec2f> points;
 vector<ofFloatColor> colours;
 bool showtimeline = false;
 
-float* getFileData(const char *filename, long size) {
-    
-    FILE *fp;
-    
-    if((fp=fopen(filename, "rb")) == NULL) {
-        cout << "can't open" << endl;
-        return NULL;
-    }
-    
-    fseek(fp, 0, SEEK_END);
-    long fsize = ftell(fp);
-    fseek(fp, 0, SEEK_SET);
-    
-    cout << "size = " << fsize/4 << endl;
-    
-    float *f = (float *)calloc(size, sizeof(float));
-    if(f==NULL)
-    {
-        fclose(fp);
-        cout << "can't alloc" << endl;
-        return NULL;
-    }
-    
-    size_t res = fread(f, sizeof(float), size/4, fp);
-    if(res != size/4)
-    {
-        fclose(fp);
-        cout << "no data, size = " << size << ", res = " << res << endl;
-    }
-    
-    
-    for (int i = 0; i < 4 * 3; i++) {
-        cout << f[i] << ", ";
-    }
-    cout << endl;
-    
-    fclose(fp);
-    
-    return f;
-}
 int maxjourneys = 0;
 //--------------------------------------------------------------
 void ofApp::setup(){
@@ -108,13 +68,6 @@ void ofApp::setup(){
     
     fbo.allocate(w, h, GL_RGB32F);
     
-//    int l = w*h*3;
-//    float *data = new float[l];
-//    for(int i = 0; i < l; i++) {
-//        data[i] = i/(float)l;
-//    }
-//    tex.loadData(data, w, h, GL_RGB);
-//    
     shader.load("basic");
     
     fbo.begin();
@@ -152,35 +105,22 @@ void ofApp::draw(){
 
     ofDisableAntiAliasing();
     ofBackgroundHex(0xffffff);
-//    tex.draw(0, 0);
-//
-//    tex1.bind();
-
-//    float time = 1000 + ofGetFrameNum()/50.0;
     float time = 418 + ofGetFrameNum()/20.0;
-    
-//    time = ofMap(mouseX, 0, ofGetWidth(), 418, 720, true);
     
     fbo.begin();
     shader.begin();
     shader.setUniform1f("time", timeline.getValue("time"));
     shader.setUniform2f("resolution", (float) ofGetWidth(), (float) ofGetHeight());
-//    img.getTextureReference().bind();
-//    shader.setUniformTexture("tex", cols, 1);
     
     char s[50];
     for (int i = 0; i < NUM_TEXES; i++) {
         sprintf(s, "tex%d", i);
         shader.setUniformTexture(string(s), texes[i], i+2);
     }
-
-//    shader.setUniformTexture("tex0", texes[0], 2);
     tex2.draw(0, 0);
-//    img.getTextureReference().unbind();
     shader.end();
     fbo.end();
-//    tex1.unbind();
-    
+
     ofTexture fbotex = fbo.getTextureReference();
     ofFloatPixels pix;
     ofTextureData data = fbotex.getTextureData();
@@ -190,31 +130,18 @@ void ofApp::draw(){
     float *fpix = pix.getPixels();
     
     
-//    cout << time << ": ";
-//    for (int i = 0; i < 9; i++) {
-//        cout << fpix[i] << ", ";
-//    }
-//    cout << ": ";
-//    for (int i = 0; i < 9; i++) {
-//        cout << fpix[pix.size() - 1 - i] << ", ";
-//    }
-//    cout << endl;
-//    
-//    cout << pix.size() << endl;
-    
     int d = mouseX/100.0;
     d = timeline.getValue("point size");
     points.clear();
     colours.clear();
     for (int i = 0; i < pix.size(); i+= 3) {
         if (fpix[i] > 1) {
-//            points.push_back(ofVec2f(fpix[i] + offsets[i], fpix[i+1] + offsets[i+1]));
             points.push_back(ofVec2f(fpix[i] + offsets[i], fpix[i+1] + offsets[i+1]));
             points.push_back(ofVec2f(fpix[i] + offsets[i], fpix[i+1] + offsets[i+1]+d));
             points.push_back(ofVec2f(fpix[i] + offsets[i]+d, fpix[i+1] + offsets[i+1]+d));
             points.push_back(ofVec2f(fpix[i] + offsets[i]+d, fpix[i+1] + offsets[i+1]));
+
             ofFloatColor col(colordata[i], colordata[i+1], colordata[i+2]);
-//            colours.push_back(col);
             colours.push_back(col); colours.push_back(col);
             colours.push_back(col); colours.push_back(col);
         }
@@ -268,13 +195,6 @@ void ofApp::draw(){
         ofRect(0, 0, ofGetWidth(), ofGetHeight());
         timeline.draw();
     }
-    
-//    texes[0].draw(0, 50);
-    
-//    
-//    if (ofGetFrameNum() > 1) {
-//        exitApp();
-//    }
     
 
 }
