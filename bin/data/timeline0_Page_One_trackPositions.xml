@@ -1,0 +1,32 @@
+<positions>
+    <element name="point size">
+        <x>0.000000000</x>
+        <y>308.000000000</y>
+        <width>1638.000000000</width>
+        <height>40.000000000</height>
+    </element>
+    <element name="rot">
+        <x>0.000000000</x>
+        <y>244.000000000</y>
+        <width>1638.000000000</width>
+        <height>40.000000000</height>
+    </element>
+    <element name="time">
+        <x>0.000000000</x>
+        <y>52.000000000</y>
+        <width>1638.000000000</width>
+        <height>40.000000000</height>
+    </element>
+    <element name="x trans">
+        <x>0.000000000</x>
+        <y>116.000000000</y>
+        <width>1638.000000000</width>
+        <height>40.000000000</height>
+    </element>
+    <element name="y trans">
+        <x>0.000000000</x>
+        <y>180.000000000</y>
+        <width>1638.000000000</width>
+        <height>40.000000000</height>
+    </element>
+</positions>
