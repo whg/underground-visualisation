@@ -1,32 +1,62 @@
 <positions>
+    <element name="img alpha">
+        <x>0.000000000</x>
+        <y>630.000000000</y>
+        <width>1440.000000000</width>
+        <height>40.000000000</height>
+    </element>
     <element name="point size">
         <x>0.000000000</x>
-        <y>308.000000000</y>
-        <width>1638.000000000</width>
+        <y>566.000000000</y>
+        <width>1440.000000000</width>
         <height>40.000000000</height>
     </element>
     <element name="rot">
         <x>0.000000000</x>
-        <y>244.000000000</y>
-        <width>1638.000000000</width>
+        <y>502.000000000</y>
+        <width>1440.000000000</width>
         <height>40.000000000</height>
     </element>
     <element name="time">
         <x>0.000000000</x>
         <y>52.000000000</y>
-        <width>1638.000000000</width>
+        <width>1440.000000000</width>
         <height>40.000000000</height>
     </element>
     <element name="x trans">
         <x>0.000000000</x>
         <y>116.000000000</y>
-        <width>1638.000000000</width>
+        <width>1440.000000000</width>
+        <height>40.000000000</height>
+    </element>
+    <element name="x2 trans">
+        <x>0.000000000</x>
+        <y>244.000000000</y>
+        <width>1440.000000000</width>
         <height>40.000000000</height>
     </element>
     <element name="y trans">
         <x>0.000000000</x>
         <y>180.000000000</y>
-        <width>1638.000000000</width>
+        <width>1440.000000000</width>
+        <height>40.000000000</height>
+    </element>
+    <element name="y2 trans">
+        <x>0.000000000</x>
+        <y>308.000000000</y>
+        <width>1440.000000000</width>
+        <height>40.000000000</height>
+    </element>
+    <element name="z trans">
+        <x>0.000000000</x>
+        <y>372.000000000</y>
+        <width>1440.000000000</width>
+        <height>42.000000000</height>
+    </element>
+    <element name="z2 trans">
+        <x>0.000000000</x>
+        <y>438.000000000</y>
+        <width>1440.000000000</width>
         <height>40.000000000</height>
     </element>
 </positions>

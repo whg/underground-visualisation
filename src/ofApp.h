@@ -3,6 +3,9 @@
 #include "ofMain.h"
 #include "ofxTimeline.h"
 
+
+const int NUM_TEXES = 8;
+
 class ofApp : public ofBaseApp{
 	public:
 		void setup();
@@ -20,8 +23,27 @@ class ofApp : public ofBaseApp{
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
     
+private:
     ofxTimeline timeline;
+    
+    
+    ofTexture texes[NUM_TEXES];
+    ofTexture cols;
+    ofTexture compute;
+    ofTexture tex1, tex2, image;
+    ofShader shader;
+    ofImage img;
+    ofFbo fbo, mainFbo;
+    ofVbo vbo;
+    float *colordata;
+    float *offsets;
+    vector<ofVec2f> points;
+    vector<ofFloatColor> colours;
+    bool showtimeline = false;
+    
+    int maxjourneys = 0;
 };
+
 
 float* getFileData(const char *filename, long size) {
     
@@ -63,3 +85,4 @@ float* getFileData(const char *filename, long size) {
     
     return f;
 }
+

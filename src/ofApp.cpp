@@ -1,33 +1,23 @@
 #include "ofApp.h"
 
-const int NUM_TEXES = 8;
-ofTexture texes[NUM_TEXES];
-ofTexture cols;
-ofTexture compute;
-ofTexture tex1, tex2, image;
-ofShader shader;
-ofImage img;
-ofFbo fbo, mainFbo;
-ofVbo vbo;
-float *colordata;
-float *offsets;
-vector<ofVec2f> points;
-vector<ofFloatColor> colours;
-bool showtimeline = false;
 
-int maxjourneys = 0;
-//--------------------------------------------------------------
+
 void ofApp::setup(){
 
-    img.loadImage("empty_map2.png");
+    img.loadImage("empty_map_nocircles.png");
     
     timeline.setup();
-    timeline.setDurationInSeconds(60);
+    timeline.setDurationInSeconds(100);
     timeline.addCurves("time", ofRange(418, 600));
-    timeline.addCurves("x trans", ofRange(-200, 200));
-    timeline.addCurves("y trans", ofRange(-200, 200));
+    timeline.addCurves("x trans", ofRange(-300, 300));
+    timeline.addCurves("y trans", ofRange(0, 500));
+    timeline.addCurves("x2 trans", ofRange(-400, 400));
+    timeline.addCurves("y2 trans", ofRange(-400, 400));
+    timeline.addCurves("z trans", ofRange(0, 1600));
+    timeline.addCurves("z2 trans", ofRange(0, 1000));
     timeline.addCurves("rot", ofRange(0, 90));
     timeline.addCurves("point size", ofRange(0, 10));
+    timeline.addCurves("img alpha", ofRange(0, 255));
     timeline.setSpacebarTogglePlay(true);
     
     
@@ -42,6 +32,8 @@ void ofApp::setup(){
 //    w = 1024;
     h = w;
     
+    
+    // load data into each of the textures
     char filename[50];
     for (int i = 0; i < NUM_TEXES; i++) {
         texes[i].allocate(w, h, GL_RGB32F);
@@ -52,11 +44,11 @@ void ofApp::setup(){
         free(data);
     }
 
+    // load the colours
     cols.allocate(w, h, GL_RGB32F);
     float *data = getFileData( ofToDataPath( "cols.data" ).c_str(), w*h*3 );
     cols.loadData(data, w, h, GL_RGB);
     colordata = data;
-//    free(data);
     
     compute.allocate(w, h, GL_RGB32F);
     
@@ -83,7 +75,7 @@ void ofApp::setup(){
     }
 
     cout << endl;
-    ofSetFrameRate(40);
+    ofSetFrameRate(25);
     ofSetVerticalSync(false);
 }
 
@@ -92,16 +84,13 @@ void ofApp::exit() {
     delete offsets;
 }
 
-//--------------------------------------------------------------
+
 void ofApp::update(){
         
 }
 
-//--------------------------------------------------------------
-void ofApp::draw(){
-    
-//    timeline.show();
 
+void ofApp::draw(){
 
     ofDisableAntiAliasing();
     ofBackgroundHex(0xffffff);
@@ -130,8 +119,7 @@ void ofApp::draw(){
     float *fpix = pix.getPixels();
     
     
-    int d = mouseX/100.0;
-    d = timeline.getValue("point size");
+    float d = timeline.getValue("point size");
     points.clear();
     colours.clear();
     for (int i = 0; i < pix.size(); i+= 3) {
@@ -149,21 +137,23 @@ void ofApp::draw(){
     
     
     
-//    ofNoFill();/
     mainFbo.begin();
 
-    ofTranslate(timeline.getValue("x trans"), timeline.getValue("y trans"));
-    ofScale(0.5, 0.5);
+    ofTranslate(timeline.getValue("x trans"), timeline.getValue("y trans"), timeline.getValue("z trans"));
 //    ofScale(0.5, 0.5);
-    ofRotateX(timeline.getValue("rot"));
+//    ofScale(0.5, 0.5);
+//    ofRotateX(timeline.getValue("rot"));
     ofBackgroundHex(0xffffff);
+    
+    ofSetColor(255, 255, 255, timeline.getValue("img alpha"));
+    img.draw(d+5, d-5);
+    
     vbo.setVertexData(&points[0], points.size(), GL_STREAM_DRAW);
     vbo.setColorData(&colours[0], colours.size(), GL_STREAM_DRAW);
     vbo.draw(GL_QUADS, 0, points.size());
     
     ofEnableAlphaBlending();
-    ofSetColor(200, 200, 200, 200);
-    img.draw(0, 0);
+   
 
     mainFbo.end();
     
@@ -172,22 +162,20 @@ void ofApp::draw(){
     mainFbo.setAnchorPercent(0.5, 0.5);
     
     ofPushMatrix();
-//    ofScale(mouseX/10.0, mouseX/10.0);
-//    ofTranslate(ofGetWidth()*0.66, ofGetHeight()*0.66);
-//    ofRotateX(mouseY);
+    ofTranslate(ofGetWidth()*0.5, ofGetHeight()*0.5);
+    ofTranslate(timeline.getValue("x2 trans"), timeline.getValue("y2 trans"), timeline.getValue("z2 trans"));
+    ofRotateX(timeline.getValue("rot"));
+
     mainFbo.draw(0, 0, ofGetWidth(), ofGetHeight());
     ofPopMatrix();
     
-    ofSetHexColor(0x888888);
-    ofDrawBitmapString(ofToString(time), 10, 10);
-    
-    ofDrawBitmapString(ofToString(ofGetFrameRate()), 10, 20);
-    
-    if (points.size() > maxjourneys) {
-        maxjourneys = points.size();
-    }
-    
-    ofDrawBitmapString(ofToString(points.size()) + " journeys (max = " + ofToString(maxjourneys) + ")", 10, 30);
+//    ofSetHexColor(0x888888);
+//    ofDrawBitmapString(ofToString(time), 10, 10);
+//    ofDrawBitmapString(ofToString(ofGetFrameRate()), 10, 20);
+//    if (points.size() > maxjourneys) {
+//        maxjourneys = points.size();
+//    }
+//    ofDrawBitmapString(ofToString(points.size()) + " journeys (max = " + ofToString(maxjourneys) + ")", 10, 30);
 
     if (showtimeline) {
         ofSetColor(0, 0, 0, 200);
@@ -199,48 +187,48 @@ void ofApp::draw(){
 
 }
 
-//--------------------------------------------------------------
+
 void ofApp::keyPressed(int key){
 //    time = 0;
     if(key == 's') showtimeline = !showtimeline;
 }
 
-//--------------------------------------------------------------
+
 void ofApp::keyReleased(int key){
 
 }
 
-//--------------------------------------------------------------
+
 void ofApp::mouseMoved(int x, int y){
 
 }
 
-//--------------------------------------------------------------
+
 void ofApp::mouseDragged(int x, int y, int button){
 
 }
 
-//--------------------------------------------------------------
+
 void ofApp::mousePressed(int x, int y, int button){
 
 }
 
-//--------------------------------------------------------------
+
 void ofApp::mouseReleased(int x, int y, int button){
 
 }
 
-//--------------------------------------------------------------
+
 void ofApp::windowResized(int w, int h){
 
 }
 
-//--------------------------------------------------------------
+
 void ofApp::gotMessage(ofMessage msg){
 
 }
 
-//--------------------------------------------------------------
+
 void ofApp::dragEvent(ofDragInfo dragInfo){ 
 
 }
