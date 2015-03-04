@@ -23,7 +23,8 @@ float* getFileData(const char *filename, long size) {
         return NULL;
     }
     
-    size_t res = fread(f, sizeof(float), size/4, fp);
+    // only read the file size, the values until the end should be 0 from calloc
+    size_t res = fread(f, sizeof(float), size, fp);
     if(res != size/4)
     {
         fclose(fp);
@@ -33,6 +34,10 @@ float* getFileData(const char *filename, long size) {
     
     for (int i = 0; i < 4 * 3; i++) {
         cout << f[i] << ", ";
+    }
+    cout << endl;
+    for (int i = 0; i < 4 * 3; i++) {
+        cout << f[fsize/4-100+i] << ", ";
     }
     cout << endl;
     
@@ -47,18 +52,18 @@ void ofApp::setup(){
     
     timeline.setup();
     timeline.setDurationInSeconds(100);
-    timeline.addCurves("time", ofRange(418, 600));
+    timeline.addCurves("time", ofRange(300, 1500));
     timeline.addCurves("x trans", ofRange(-300, 300));
     timeline.addCurves("y trans", ofRange(0, 500));
     timeline.addCurves("x2 trans", ofRange(-400, 400));
-    timeline.addCurves("y2 trans", ofRange(-400, 400));
+    timeline.addCurves("y2 trans", ofRange(-100, 100));
     timeline.addCurves("z trans", ofRange(0, 1600));
     timeline.addCurves("z2 trans", ofRange(0, 1000));
     timeline.addCurves("rot", ofRange(0, 90));
     timeline.addCurves("point size", ofRange(0, 10));
     timeline.addCurves("img alpha", ofRange(0, 255));
     timeline.setSpacebarTogglePlay(true);
-    
+    timeline.play();
     
     int maj, min;
     glGetIntegerv(GL_MAJOR_VERSION, &maj);
@@ -67,9 +72,9 @@ void ofApp::setup(){
     
     cout << glGetString(GL_VERSION) << endl;
     
-    int w = 512, h = 1024;
+    int w = 1024, h = 1024;
 //    w = 1024;
-    h = w;
+//    h = w;
     
     
     // load data into each of the textures
@@ -77,7 +82,7 @@ void ofApp::setup(){
     for (int i = 0; i < NUM_TEXES; i++) {
         texes[i].allocate(w, h, GL_RGB32F);
     
-        sprintf(filename, "t%d.data", i);
+        sprintf(filename, "whole/t%d.data", i);
         float *data = getFileData(ofToDataPath(filename).c_str(), w*h*3 );
         texes[i].loadData(data, w, h, GL_RGB);
         free(data);
@@ -85,7 +90,7 @@ void ofApp::setup(){
 
     // load the colours
     cols.allocate(w, h, GL_RGB32F);
-    float *data = getFileData( ofToDataPath( "cols.data" ).c_str(), w*h*3 );
+    float *data = getFileData( ofToDataPath( "whole/cols.data" ).c_str(), w*h*3 );
     cols.loadData(data, w, h, GL_RGB);
     colordata = data;
     
@@ -107,8 +112,8 @@ void ofApp::setup(){
     
     mainFbo.allocate(ofGetWidth(), ofGetHeight());
     
-    offsets = new float[w*h*2];
-    for (int i = 0; i < 512*512*2; i++) {
+    offsets = new float[w*h*2*2];
+    for (int i = 0; i < w*h*2*2; i++) {
         offsets[i] = (ofRandomf() * 2 - 1) * 2.5;
 //        offsets[i] = generateGaussianNoise(4);
     }
@@ -133,11 +138,14 @@ void ofApp::draw(){
 
     ofDisableAntiAliasing();
     ofBackgroundHex(0xffffff);
-    float time = 418 + ofGetFrameNum()/20.0;
+    float time = 1000 + ofGetFrameNum()/20.0;
+//    time = ofMap(mouseX, 0, 1440, 0, 1440);
+    time = timeline.getValue("time");
+    
     
     fbo.begin();
     shader.begin();
-    shader.setUniform1f("time", timeline.getValue("time"));
+    shader.setUniform1f("time", time);
     shader.setUniform2f("resolution", (float) ofGetWidth(), (float) ofGetHeight());
     
     char s[50];
@@ -158,7 +166,7 @@ void ofApp::draw(){
     float *fpix = pix.getPixels();
     
     
-    float d = timeline.getValue("point size");
+    float d = 5; //timeline.getValue("point size");
     points.clear();
     colours.clear();
     for (int i = 0; i < pix.size(); i+= 3) {
@@ -168,7 +176,7 @@ void ofApp::draw(){
             points.push_back(ofVec2f(fpix[i] + offsets[i]+d, fpix[i+1] + offsets[i+1]+d));
             points.push_back(ofVec2f(fpix[i] + offsets[i]+d, fpix[i+1] + offsets[i+1]));
 
-            ofFloatColor col(colordata[i], colordata[i+1], colordata[i+2]);
+            ofFloatColor col(colordata[i], colordata[i+1], colordata[i+2], 0.9);
             colours.push_back(col); colours.push_back(col);
             colours.push_back(col); colours.push_back(col);
         }
@@ -177,13 +185,14 @@ void ofApp::draw(){
     
     
     mainFbo.begin();
-
-    ofTranslate(timeline.getValue("x trans"), timeline.getValue("y trans"), timeline.getValue("z trans"));
+    ofEnableAlphaBlending();
+    
+//    ofTranslate(timeline.getValue("x trans"), timeline.getValue("y trans"), timeline.getValue("z trans"));
 //    ofScale(0.5, 0.5);
 //    ofScale(0.5, 0.5);
 //    ofRotateX(timeline.getValue("rot"));
     ofBackgroundHex(0xffffff);
-    
+
     ofSetColor(255, 255, 255, timeline.getValue("img alpha"));
     img.draw(d+5, d-5);
     
@@ -191,7 +200,6 @@ void ofApp::draw(){
     vbo.setColorData(&colours[0], colours.size(), GL_STREAM_DRAW);
     vbo.draw(GL_QUADS, 0, points.size());
     
-    ofEnableAlphaBlending();
    
 
     mainFbo.end();
@@ -200,6 +208,8 @@ void ofApp::draw(){
     
     mainFbo.setAnchorPercent(0.5, 0.5);
     
+//    ofScale(0.5, 0.5);
+
     ofPushMatrix();
     ofTranslate(ofGetWidth()*0.5, ofGetHeight()*0.5);
     ofTranslate(timeline.getValue("x2 trans"), timeline.getValue("y2 trans"), timeline.getValue("z2 trans"));
@@ -207,15 +217,18 @@ void ofApp::draw(){
 
     mainFbo.draw(0, 0, ofGetWidth(), ofGetHeight());
     ofPopMatrix();
-    
-//    ofSetHexColor(0x888888);
-//    ofDrawBitmapString(ofToString(time), 10, 10);
-//    ofDrawBitmapString(ofToString(ofGetFrameRate()), 10, 20);
-//    if (points.size() > maxjourneys) {
-//        maxjourneys = points.size();
-//    }
-//    ofDrawBitmapString(ofToString(points.size()) + " journeys (max = " + ofToString(maxjourneys) + ")", 10, 30);
 
+    ofPushMatrix();
+    ofScale(2, 2);
+
+    ofSetHexColor(0x888888);
+    ofDrawBitmapString(ofToString(int(time)/60) + ":" + ofToString(int(time) % 60), 10, 10);
+    ofDrawBitmapString(ofToString(ofGetFrameRate()), 10, 20);
+    if (points.size() > maxjourneys) {
+        maxjourneys = points.size();
+    }
+    ofDrawBitmapString(ofToString(points.size()) + " journeys (max = " + ofToString(maxjourneys) + ")", 10, 30);
+    ofPopMatrix();
     if (showtimeline) {
         ofSetColor(0, 0, 0, 200);
         ofFill();
@@ -223,7 +236,7 @@ void ofApp::draw(){
         timeline.draw();
     }
     
-
+//    ofSaveFrame();
 }
 
 
