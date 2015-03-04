@@ -30,7 +30,6 @@ private:
     ofTexture texes[NUM_TEXES];
     ofTexture cols;
     ofTexture compute;
-    ofTexture tex1, tex2, image;
     ofShader shader;
     ofImage img;
     ofFbo fbo, mainFbo;

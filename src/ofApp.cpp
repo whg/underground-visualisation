@@ -98,12 +98,6 @@ void ofApp::setup(){
     
     compute.allocate(w, h, GL_RGB32F);
     
-    
-    tex1.allocate(ofGetWidth(), ofGetHeight(), GL_RGB32F);
-    tex2.allocate(w, h, GL_RGB32F);
-    
-    image.allocate(w, h, GL_RGB32F);
-    
     fbo.allocate(w, h, GL_RGB32F);
     
     shader.load("basic");
@@ -121,7 +115,7 @@ void ofApp::setup(){
     }
 
     cout << endl;
-    ofSetFrameRate(5);
+    ofSetFrameRate(25);
     ofSetVerticalSync(false);
     
     ttf.loadFont("/System/Library/Fonts/Menlo.ttc", 48);
@@ -158,7 +152,7 @@ void ofApp::draw(){
         sprintf(s, "tex%d", i);
         shader.setUniformTexture(string(s), texes[i], i+2);
     }
-    tex2.draw(0, 0);
+    compute.draw(0, 0);
     shader.end();
     fbo.end();
 
@@ -244,7 +238,7 @@ void ofApp::draw(){
         timeline.draw();
     }
     
-    ofSaveFrame();
+//    ofSaveFrame();
 }
 
 
