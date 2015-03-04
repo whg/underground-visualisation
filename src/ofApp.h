@@ -42,6 +42,7 @@ private:
     bool showtimeline = false;
     
     int maxjourneys = 0;
+    ofTrueTypeFont ttf, subtitle;
 };
 
 

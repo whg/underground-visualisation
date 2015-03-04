@@ -51,8 +51,10 @@ void ofApp::setup(){
     img.loadImage("empty_map_nocircles.png");
     
     timeline.setup();
-    timeline.setDurationInSeconds(100);
-    timeline.addCurves("time", ofRange(300, 1500));
+    timeline.setDurationInSeconds(120);
+    timeline.setFrameBased(true);
+    timeline.setFrameRate(25);
+    timeline.addCurves("time", ofRange(300, 1500), 0);
     timeline.addCurves("x trans", ofRange(-300, 300));
     timeline.addCurves("y trans", ofRange(0, 500));
     timeline.addCurves("x2 trans", ofRange(-400, 400));
@@ -119,8 +121,11 @@ void ofApp::setup(){
     }
 
     cout << endl;
-    ofSetFrameRate(25);
+    ofSetFrameRate(5);
     ofSetVerticalSync(false);
+    
+    ttf.loadFont("/System/Library/Fonts/Menlo.ttc", 48);
+    subtitle.loadFont("/System/Library/Fonts/Menlo.ttc", 18);
 }
 
 void ofApp::exit() {
@@ -219,16 +224,19 @@ void ofApp::draw(){
     ofPopMatrix();
 
     ofPushMatrix();
-    ofScale(2, 2);
 
     ofSetHexColor(0x888888);
-    ofDrawBitmapString(ofToString(int(time)/60) + ":" + ofToString(int(time) % 60), 10, 10);
-    ofDrawBitmapString(ofToString(ofGetFrameRate()), 10, 20);
+    char timestr[10];
+    sprintf(timestr, "%02d:%02d", int(time)/60, int(time)%60);
+    ttf.drawString(timestr, 1390, 850);
+
     if (points.size() > maxjourneys) {
         maxjourneys = points.size();
     }
-    ofDrawBitmapString(ofToString(points.size()) + " journeys (max = " + ofToString(maxjourneys) + ")", 10, 30);
+
+    subtitle.drawString(ofToString(points.size()) + " journeys", 1400, 880);
     ofPopMatrix();
+
     if (showtimeline) {
         ofSetColor(0, 0, 0, 200);
         ofFill();
@@ -236,7 +244,7 @@ void ofApp::draw(){
         timeline.draw();
     }
     
-//    ofSaveFrame();
+    ofSaveFrame();
 }
 
 
