@@ -13,7 +13,7 @@ float* getFileData(const char *filename, long size) {
     long fsize = ftell(fp);
     fseek(fp, 0, SEEK_SET);
     
-    cout << "size = " << fsize/4 << endl;
+    cout << "size = " << fsize/sizeof(float) << endl;
     
     float *f = (float *)calloc(size, sizeof(float));
     if(f==NULL)
@@ -25,21 +25,12 @@ float* getFileData(const char *filename, long size) {
     
     // only read the file size, the values until the end should be 0 from calloc
     size_t res = fread(f, sizeof(float), size, fp);
-    if(res != size/4)
+    if(res != size/sizeof(float))
     {
         fclose(fp);
         cout << "no data, size = " << size << ", res = " << res << endl;
     }
     
-    
-    for (int i = 0; i < 4 * 3; i++) {
-        cout << f[i] << ", ";
-    }
-    cout << endl;
-    for (int i = 0; i < 4 * 3; i++) {
-        cout << f[fsize/4-100+i] << ", ";
-    }
-    cout << endl;
     
     fclose(fp);
     
@@ -54,7 +45,7 @@ void ofApp::setup(){
     timeline.setDurationInSeconds(120);
     timeline.setFrameBased(true);
     timeline.setFrameRate(25);
-    timeline.addCurves("time", ofRange(300, 1500), 0);
+    timeline.addCurves("time", ofRange(300, 1550), 0);
     timeline.addCurves("x trans", ofRange(-300, 300));
     timeline.addCurves("y trans", ofRange(0, 500));
     timeline.addCurves("x2 trans", ofRange(-400, 400));
@@ -62,7 +53,7 @@ void ofApp::setup(){
     timeline.addCurves("z trans", ofRange(0, 1600));
     timeline.addCurves("z2 trans", ofRange(0, 1000));
     timeline.addCurves("rot", ofRange(0, 90));
-    timeline.addCurves("point size", ofRange(0, 10));
+    timeline.addCurves("point size", ofRange(1, 6));
     timeline.addCurves("img alpha", ofRange(0, 255));
     timeline.setSpacebarTogglePlay(true);
     timeline.play();
@@ -75,6 +66,7 @@ void ofApp::setup(){
     cout << glGetString(GL_VERSION) << endl;
     
     int w = 1024, h = 1024;
+    size_t len = w * h * 3;
 //    w = 1024;
 //    h = w;
     
@@ -85,14 +77,14 @@ void ofApp::setup(){
         texes[i].allocate(w, h, GL_RGB32F);
     
         sprintf(filename, "whole/t%d.data", i);
-        float *data = getFileData(ofToDataPath(filename).c_str(), w*h*3 );
+        float *data = getFileData(ofToDataPath(filename).c_str(), len);
         texes[i].loadData(data, w, h, GL_RGB);
         free(data);
     }
 
     // load the colours
     cols.allocate(w, h, GL_RGB32F);
-    float *data = getFileData( ofToDataPath( "whole/cols.data" ).c_str(), w*h*3 );
+    float *data = getFileData( ofToDataPath( "whole/cols.data" ).c_str(), len);
     cols.loadData(data, w, h, GL_RGB);
     colordata = data;
     
@@ -108,8 +100,8 @@ void ofApp::setup(){
     
     mainFbo.allocate(ofGetWidth(), ofGetHeight());
     
-    offsets = new float[w*h*2*2];
-    for (int i = 0; i < w*h*2*2; i++) {
+    offsets = new float[len*2];
+    for (int i = 0; i < len*2; i++) {
         offsets[i] = (ofRandomf() * 2 - 1) * 2.5;
 //        offsets[i] = generateGaussianNoise(4);
     }
@@ -117,6 +109,16 @@ void ofApp::setup(){
     cout << endl;
     ofSetFrameRate(25);
     ofSetVerticalSync(false);
+    
+    //adjust central line colour!!!
+    for (size_t i = 1; i < len; i+=3) {
+        float b = abs(colordata[i] - 73/255.0);
+        if (b < 0.00001) {
+            colordata[i-1] = 0.92;
+            colordata[i] = 0.1;
+            colordata[i+1] = 0.1;
+        }
+    }
     
     ttf.loadFont("/System/Library/Fonts/Menlo.ttc", 48);
     subtitle.loadFont("/System/Library/Fonts/Menlo.ttc", 18);
@@ -165,7 +167,7 @@ void ofApp::draw(){
     float *fpix = pix.getPixels();
     
     
-    float d = 5; //timeline.getValue("point size");
+    float d = timeline.getValue("point size");
     points.clear();
     colours.clear();
     for (int i = 0; i < pix.size(); i+= 3) {
@@ -175,7 +177,7 @@ void ofApp::draw(){
             points.push_back(ofVec2f(fpix[i] + offsets[i]+d, fpix[i+1] + offsets[i+1]+d));
             points.push_back(ofVec2f(fpix[i] + offsets[i]+d, fpix[i+1] + offsets[i+1]));
 
-            ofFloatColor col(colordata[i], colordata[i+1], colordata[i+2], 0.9);
+            ofFloatColor col(colordata[i], colordata[i+1], colordata[i+2]);
             colours.push_back(col); colours.push_back(col);
             colours.push_back(col); colours.push_back(col);
         }
@@ -219,16 +221,16 @@ void ofApp::draw(){
 
     ofPushMatrix();
 
-    ofSetHexColor(0x888888);
+    ofSetHexColor(0x222222);
     char timestr[10];
     sprintf(timestr, "%02d:%02d", int(time)/60, int(time)%60);
-    ttf.drawString(timestr, 1390, 850);
+    ttf.drawString(timestr, 1390, 800);
 
     if (points.size() > maxjourneys) {
         maxjourneys = points.size();
     }
 
-    subtitle.drawString(ofToString(points.size()) + " journeys", 1400, 880);
+    subtitle.drawString(ofToString(points.size()) + " journeys", 1400, 830);
     ofPopMatrix();
 
     if (showtimeline) {
